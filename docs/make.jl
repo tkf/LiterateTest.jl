@@ -19,6 +19,4 @@ makedocs(
     ],
 )
 
-#=deploydocs(
-    repo = "<repository url>"
-)=#
+deploydocs(; repo = "github.com/tkf/LiterateTest.jl", push_preview = true)
