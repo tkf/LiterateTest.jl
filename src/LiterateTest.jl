@@ -18,6 +18,24 @@ config(; preprocess = identity, kw...) =
 
 nitems(itr) = count(_ -> true, itr)
 
+if isdefined(Iterators, :takewhile)
+    using Base.Iterators: takewhile
+else
+    takewhile(pred, xs) = TakeWhile(pred, xs)
+    struct TakeWhile{I,P<:Function}
+        pred::P
+        xs::I
+    end
+    function Base.iterate(ibl::TakeWhile, itr...)
+        y = iterate(ibl.xs, itr...)
+        y === nothing && return nothing
+        ibl.pred(y[1]) || return nothing
+        y
+    end
+    Base.IteratorSize(::Type{<:TakeWhile}) = Base.SizeUnknown()
+    Base.IteratorEltype(::Type{TakeWhile{I,P}}) where {I,P} = Base.IteratorEltype(I)
+end
+
 """
     LiterateTest.preprocess(code::AbstractString) -> code′::String
 
@@ -110,7 +128,7 @@ function print_deindent_until(f, io, source)
     while true
         ln = popfirst!(source)
         f(ln) && break
-        indent = min(indent, nitems(Iterators.takewhile(isequal(' '), ln)))
+        indent = min(indent, nitems(takewhile(isequal(' '), ln)))
         println(io, remove_global(ln[nextind(ln, indent):end]))
     end
 end
