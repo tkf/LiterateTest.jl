@@ -188,10 +188,10 @@ running the tests.
 
 # Examples
 ```jldoctest
-julia> module MyTests
-           using LiterateTest.AssertAsTest: @assert
-           @assert 1 == 1
-       end;
+julia> using LiterateTest.AssertAsTest: @assert
+
+julia> @assert 1 == 1
+Test Passed
 ```
 """
 module AssertAsTest
