@@ -8,4 +8,8 @@ using LiterateTest
     doctest(LiterateTest; manual = true)
 end
 
+@testset "/test/doctests" begin
+    doctest(joinpath((@__DIR__), "doctests"), Module[])
+end
+
 end  # module

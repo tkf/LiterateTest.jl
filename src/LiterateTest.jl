@@ -1,6 +1,6 @@
 module LiterateTest
 
-export @evaltest
+export @evaltest, @evaltest_throw
 
 import Test
 
@@ -35,6 +35,15 @@ else
     Base.IteratorSize(::Type{<:TakeWhile}) = Base.SizeUnknown()
     Base.IteratorEltype(::Type{TakeWhile{I,P}}) where {I,P} = Base.IteratorEltype(I)
 end
+
+#! format: off
+const INTERPOLATION_NOT_SUPPORTED_ERROR = ArgumentError(
+    raw"""
+    Interpolation with `$` is not supported.
+    Use `raw"..."` to avoid parsing `$` as interpolation.
+    """
+)
+#! format: on
 
 """
     LiterateTest.preprocess(code::AbstractString) -> code′::String
@@ -111,11 +120,58 @@ function preprocess(original::AbstractString)
             while true
                 popfirst!(source) == "end" && break
             end
-        elseif (m = match(r"^@evaltest (raw)?\"(.*)\" begin$", ln)) !== nothing
-            println(io, m[2])
-            while true
-                popfirst!(source) == "end" && break
+        elseif (
+            m = match(
+                r"""
+                ^(?<macroname>@evaltest|@evaltest_throw)\ +
+                (?<str>
+                    (?:raw)? (?<left>\"\"\"|\") (?<code>.*?) (?<right>\"\"\"|\")
+                )\ + begin$
+                """x,
+                ln,
+            )
+        ) !== nothing
+            ex = Meta.parse(m[:str])
+            if ex isa String
+                code = ex
+            elseif ex.head === :string
+                throw(INTERPOLATION_NOT_SUPPORTED_ERROR)
+            else
+                @assert ex.head == :macrocall
+                @assert ex.args[1] == Symbol("@raw_str")
+                code = ex.args[end]
             end
+            if m[:macroname] == "@evaltest"
+                println(io, code)
+                while true
+                    popfirst!(source) == "end" && break
+                end
+            elseif m[:macroname] == "@evaltest_throw"
+                print(io, THROWING_HEADER)
+                println(io, code)
+                print(io, THROWING_FOOTER)
+                while true
+                    popfirst!(source) == "end" && break
+                end
+            end
+        #! format: off
+        #=
+        elseif (m = match(r"^@throwing *(.*)$", ln)) !== nothing
+            print(io, THROWING_HEADER)
+            println(io, m[1])
+            print(io, THROWING_FOOTER)
+        elseif (m = match(r"^@throwing\((.*)\)$", ln)) !== nothing
+            print(io, THROWING_HEADER)
+            println(io, m[1])
+            print(io, THROWING_FOOTER)
+        elseif ln == "^@throwing begin"
+            print(io, THROWING_HEADER)
+            print_deindent_until(io, source) do ln
+                startswith(ln, "end ")
+            end
+            print(io, THROWING_FOOTER)
+        =#
+        #! format: on
         else
             println(io, ln)
         end
@@ -145,7 +201,7 @@ end
 
 Evaluate `code`, assign it to the variable `ans`, and then run `tests`.
 
-This is meant to be processed by `LiterateTest.preprocess`.
+This macro is meant to be processed by `LiterateTest.preprocess`.
 """
 macro evaltest(code::AbstractString, tests::Expr)
     ex = :($Test.@testset $code begin
@@ -166,6 +222,83 @@ macro evaltest(str::Expr, tests::Expr)
     code::AbstractString
     return esc(:($(@__MODULE__).@evaltest $code $tests))
 end
+
+struct Success
+    value::Any
+end
+
+const ∉ᵢₛₐ = !isa
+
+function check_exception(ans)
+    Test.@test ans ∉ᵢₛₐ Success
+end
+
+"""
+    @evaltest_throw "\$code" begin \$tests end
+    @evaltest_throw raw"\$code" begin \$tests end
+
+Evaluate `code`, assign the exception thrown to the variable `ans`,
+and then run `tests`.
+
+This macro is meant to be processed by `LiterateTest.preprocess`.
+"""
+macro evaltest_throw(code::AbstractString, tests::Expr)
+    code_catch = """
+    import LiterateTest
+    try
+        LiterateTest.Success($code)
+    catch err
+        err
+    end
+    """
+    ex = :($Test.@testset $code begin
+        ans = $Base.include_string(@__MODULE__, $(QuoteNode(code_catch)))
+        $check_exception(ans)
+        $tests
+    end)
+    @assert ex.head == :macrocall
+    @assert ex.args[2] isa LineNumberNode
+    @assert ex.args[4].head === :block
+    @assert ex.args[4].args[1] isa LineNumberNode
+    ex.args[2] = __source__
+    ex.args[4].args[1] = __source__
+    return esc(ex)
+end
+
+macro evaltest_throw(str::Expr, tests::Expr)
+    code = macroexpand(__module__, str)
+    code::AbstractString
+    return esc(:($(@__MODULE__).@evaltest_throw $code $tests))
+end
+
+#=
+"""
+    @throwing ex
+
+Catch and return the exception thrown in `ex`.
+"""
+macro throwing(ex)
+    quote
+        try
+            $(esc(ex))
+            nothing
+        catch err
+            err
+        end
+    end
+end
+=#
+
+const THROWING_HEADER = """
+ans = try # hide
+"""
+
+const THROWING_FOOTER = """
+catch err; err; end # hide
+print(stdout, "ERROR: ") # hide
+showerror(stdout, ans) # hide
+#-
+"""
 
 """
     LiterateTest.AssertAsTest
