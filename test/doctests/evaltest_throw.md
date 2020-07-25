@@ -22,11 +22,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error(1)
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -39,11 +39,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error("1")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -58,11 +58,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error(1)
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -75,11 +75,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error("1")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -94,11 +94,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error("1")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -113,11 +113,11 @@ end
 
 # output
 
-ans = try # hide
+err = try # hide
 error("1")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -136,11 +136,11 @@ end
 # output
 
 hello = 1
-ans = try # hide
+err = try # hide
 error("$hello")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```
 
@@ -157,10 +157,10 @@ end
 # output
 
 hello = 1
-ans = try # hide
+err = try # hide
 error("$hello")
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 ```

@@ -266,13 +266,13 @@ end
 =#
 
 const THROWING_HEADER = """
-ans = try # hide
+err = try # hide
 """
 
 const THROWING_FOOTER = """
-catch err; err; end # hide
+catch _err; _err; end # hide
 print(stdout, "ERROR: ") # hide
-showerror(stdout, ans) # hide
+showerror(stdout, err) # hide
 #-
 """
 
