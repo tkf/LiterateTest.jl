@@ -52,3 +52,33 @@ end == 2
 
 1 + 1
 ```
+
+## `@dedent` with `global`
+
+```jldoctest
+raw"""
+@dedent begin
+    global x = 1
+end
+""" |> test
+
+# output
+
+x = 1
+```
+
+## `@dedent` with `global` and newline
+
+```jldoctest
+raw"""
+@dedent begin
+    global x =
+        1
+end
+""" |> test
+
+# output
+
+x =
+    1
+```

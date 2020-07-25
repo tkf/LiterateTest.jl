@@ -200,7 +200,7 @@ function print_deindent_until(f, io, source)
 end
 
 function remove_global(ln)
-    m = match(r"^global +([^ ]+ = .*)$", ln)
+    m = match(r"^global +([^ ]+ =(\s.*)?)$", ln)
     m === nothing || return m[1]
     return ln
 end
