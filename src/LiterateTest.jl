@@ -1,6 +1,6 @@
 module LiterateTest
 
-export @evaltest, @evaltest_throw
+export @dedent, @evaltest, @evaltest_throw
 
 import Test
 
@@ -112,10 +112,14 @@ function preprocess(original::AbstractString)
             print_deindent_until(io, source) do ln
                 ln == "end"
             end
-        elseif ln == "@test begin"
+        elseif (m = match(r"^( *)@test +begin$", ln)) !== nothing
+            spaces = m[1]
+            re = Regex("^" * spaces * raw"end\b")
             print_deindent_until(io, source) do ln
-                startswith(ln, "end ")
+                match(re, ln) !== nothing
             end
+        elseif (m = match(r"^( *)@test\b", ln)) !== nothing
+            # remove `@test ...`
         elseif startswith(ln, "@testset ")
             while true
                 popfirst!(source) == "end" && break
@@ -172,6 +176,12 @@ function preprocess(original::AbstractString)
             print(io, THROWING_FOOTER)
         =#
         #! format: on
+        elseif (m = match(r"^( *)@dedent +((.*?) +)?begin$", ln)) !== nothing
+            spaces = m[1]
+            re = Regex("^" * spaces * raw"end\b")
+            print_deindent_until(io, source) do ln
+                match(re, ln) !== nothing
+            end
         else
             println(io, ln)
         end
@@ -299,6 +309,19 @@ print(stdout, "ERROR: ") # hide
 showerror(stdout, ans) # hide
 #-
 """
+
+"""
+    @dedent begin
+        ex
+    end
+
+A no-op macro that just evaluates `ex`.
+
+This macro is meant to be processed by `LiterateTest.preprocess`.
+"""
+macro dedent(ex)
+    esc(ex)
+end
 
 """
     LiterateTest.AssertAsTest

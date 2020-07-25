@@ -76,6 +76,24 @@ output = """
 
 @assert LiterateTest.preprocess(input) == output
 
+# `@test` itself can be indented
+
+input = """
+    if VERSION >= v"1.4"
+        @test begin
+            code
+        end == 1
+    end
+    """
+
+output = """
+    if VERSION >= v"1.4"
+    code
+    end
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
 # ## Extracting `$code` from `@evaltest "$code"`
 
 input = """
@@ -160,3 +178,91 @@ output = """
     @test ans == ErrorException("msg")
 end
 nothing  # hide
+
+# ## De-indenting `code` in `@dedent begin code end`
+
+input = """
+    @dedent @time begin
+        code
+    end
+    """
+
+output = """
+    code
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent @time begin
+    1 + 1
+end
+
+# Expressions after `end` are ignored
+
+input = """
+    @dedent @assert begin
+        code
+    end == 1
+    """
+
+output = """
+    code
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent @assert begin
+    1 + 1
+end == 2
+
+# `@dedent` works with assignments
+
+input = """
+    @dedent y1 = begin
+        1 + 1
+    end
+    @dedent y2 = begin
+        3 - 1
+    end
+    @test y1 == y2
+    """
+
+output = """
+    1 + 1
+    3 - 1
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent y1 = begin
+    1 + 1
+end
+@dedent y2 = begin
+    3 - 1
+end
+@test y1 == y2
+nothing  # hide
+
+# `@dedent` itself can be indented
+
+input = """
+    if VERSION >= v"1.4"
+        @dedent @assert begin
+            code
+        end == 1
+    end
+    """
+
+output = """
+    if VERSION >= v"1.4"
+    code
+    end
+    """
+
+@assert LiterateTest.preprocess(input) == output
