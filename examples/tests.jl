@@ -175,11 +175,11 @@ Text(LiterateTest.preprocess(input))
 # It's a bit tricky to test this in Literate.jl:
 
 output = decode_output("""
-    |ans = try # hide|
+    |err = try # hide|
     |error("msg")|
-    |catch err; err; end # hide|
+    |catch _err; _err; end # hide|
     |print(stdout, "ERROR: ") # hide|
-    |showerror(stdout, ans) # hide|
+    |showerror(stdout, err) # hide|
     |#-|
     """)
 
