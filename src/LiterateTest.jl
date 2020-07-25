@@ -1,6 +1,6 @@
 module LiterateTest
 
-export @evaltest, @evaltest_throw
+export @dedent, @evaltest, @evaltest_throw
 
 import Test
 
@@ -58,46 +58,6 @@ See [Testing LiterateTest.jl](@ref tests) for examples of how it works.
     line-based transformation.  It may break with complex expressions.
 
 `LiterateTest.preprocess` does the following transformations:
-
-* Remove `ans = begin` and `end` from
-
-  ```
-  ans = begin
-      # any number of lines with consistent indentation
-  end
-  ```
-
-  and then de-indent the lines inside `begin ... end`.
-
-* Remove `@test begin` and `end ...` from
-
-  ```
-  @test begin
-      # any number of lines with consistent indentation
-  end # any content after `end` is ignored.
-  ```
-
-  and then de-indent the lines inside `begin ... end`.  Also remove
-  `global` from assignments of the form `global ... = ...` if appears
-  at the shallowest indentation level.
-
-* Remove the `@testset` block of the form
-
-  ```
-  @testset ...
-      ...
-  end
-  ```
-
-* Extract `\$code` from
-
-  ```
-  @evaltest "\$code" ...
-      ...
-  end
-  ```
-
-  and remove everything else.
 """
 function preprocess(original::AbstractString)
     source = Iterators.Stateful(eachline(IOBuffer(original)))
@@ -109,13 +69,19 @@ function preprocess(original::AbstractString)
             break
         end
         if ln == "ans = begin"
+            println(io, "ans = begin # hide")
             print_deindent_until(io, source) do ln
                 ln == "end"
             end
-        elseif ln == "@test begin"
+            println(io, "end # hide")
+        elseif (m = match(r"^( *)@test +begin$", ln)) !== nothing
+            spaces = m[1]
+            re = Regex("^" * spaces * raw"end\b")
             print_deindent_until(io, source) do ln
-                startswith(ln, "end ")
+                match(re, ln) !== nothing
             end
+        elseif (m = match(r"^( *)@test\b", ln)) !== nothing
+            # remove `@test ...`
         elseif startswith(ln, "@testset ")
             while true
                 popfirst!(source) == "end" && break
@@ -172,6 +138,16 @@ function preprocess(original::AbstractString)
             print(io, THROWING_FOOTER)
         =#
         #! format: on
+        elseif (m = match(r"^( *)@dedent +([^ ].*)$", ln)) !== nothing
+            println(io, m[2], " # hide")
+            spaces = m[1]
+            re = Regex("^" * spaces * raw"(end\b.*)$")
+            mend = nothing
+            print_deindent_until(io, source) do ln
+                mend = match(re, ln)
+                mend !== nothing
+            end
+            println(io, mend[1], " # hide")
         else
             println(io, ln)
         end
@@ -190,7 +166,7 @@ function print_deindent_until(f, io, source)
 end
 
 function remove_global(ln)
-    m = match(r"^global +([^ ]+ = .*)$", ln)
+    m = match(r"^global +([^ ]+ =(\s.*)?)$", ln)
     m === nothing || return m[1]
     return ln
 end
@@ -299,6 +275,19 @@ print(stdout, "ERROR: ") # hide
 showerror(stdout, ans) # hide
 #-
 """
+
+"""
+    @dedent begin
+        ex
+    end
+
+A no-op macro that just evaluates `ex`.
+
+This macro is meant to be processed by `LiterateTest.preprocess`.
+"""
+macro dedent(ex)
+    esc(ex)
+end
 
 """
     LiterateTest.AssertAsTest

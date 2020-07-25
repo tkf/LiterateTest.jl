@@ -6,6 +6,18 @@ using LiterateTest
 # This file tests LiterateTest.jl using plain Literate.jl-compatible
 # source code.
 
+# ## Helper function
+
+decode_output(output) = join((strip(ln, '|') for ln in split(output, "\n")), "\n")
+
+@assert decode_output("""
+    |a|
+    |b|
+    """) === """
+    a
+    b
+    """
+
 # ## Removing `ans = begin` and `end`
 
 input = """
@@ -14,9 +26,11 @@ input = """
     end
     """
 
-output = """
-    1 + 2
-    """
+output = decode_output("""
+    |ans = begin # hide|
+    |1 + 2|
+    |end # hide|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
 
@@ -72,6 +86,24 @@ input = """
 output = """
     y = 1 + 2
     y + 3
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
+# `@test` itself can be indented
+
+input = """
+    if VERSION >= v"1.4"
+        @test begin
+            code
+        end == 1
+    end
+    """
+
+output = """
+    if VERSION >= v"1.4"
+    code
+    end
     """
 
 @assert LiterateTest.preprocess(input) == output
@@ -142,17 +174,16 @@ Text(LiterateTest.preprocess(input))
 
 # It's a bit tricky to test this in Literate.jl:
 
-output = """
+output = decode_output("""
     |ans = try # hide|
     |error("msg")|
     |catch err; err; end # hide|
     |print(stdout, "ERROR: ") # hide|
     |showerror(stdout, ans) # hide|
     |#-|
-    """
+    """)
 
-@assert LiterateTest.preprocess(input) ==
-        join((strip(ln, '|') for ln in split(output, "\n")), "\n")
+@assert LiterateTest.preprocess(input) == output
 
 # Demo:
 
@@ -160,3 +191,101 @@ output = """
     @test ans == ErrorException("msg")
 end
 nothing  # hide
+
+# ## De-indenting `code` in `@dedent begin code end`
+
+input = """
+    @dedent @time begin
+        code
+    end
+    """
+
+output = decode_output("""
+    |@time begin # hide|
+    |code|
+    |end # hide|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent @time begin
+    1 + 1
+end
+
+# Expressions after `end` are ignored
+
+input = """
+    @dedent @assert begin
+        code
+    end == 1
+    """
+
+output = decode_output("""
+    |@assert begin # hide|
+    |code|
+    |end == 1 # hide|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent @assert begin
+    1 + 1
+end == 2
+
+# `@dedent` works with assignments
+
+input = """
+    @dedent y1 = begin
+        1 + 1
+    end
+    @dedent y2 = begin
+        3 - 1
+    end
+    @test y1 == y2
+    """
+
+output = decode_output("""
+    |y1 = begin # hide|
+    |1 + 1|
+    |end # hide|
+    |y2 = begin # hide|
+    |3 - 1|
+    |end # hide|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@dedent y1 = begin
+    1 + 1
+end
+@dedent y2 = begin
+    3 - 1
+end
+@test y1 == y2
+nothing  # hide
+
+# `@dedent` itself can be indented
+
+input = """
+    if VERSION >= v"1.4"
+        @dedent @assert begin
+            code
+        end == 1
+    end
+    """
+
+output = decode_output("""
+    |if VERSION >= v"1.4"|
+    |@assert begin # hide|
+    |code|
+    |end == 1 # hide|
+    |end|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
