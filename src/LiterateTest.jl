@@ -151,7 +151,6 @@ function preprocess(original::AbstractString)
         elseif match(r"^ *#! format: (on|off)$", ln) !== nothing
             # Filter out JuliaFormatter directives:
             # https://domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/
-            println(io)
         else
             println(io, ln)
         end
@@ -184,9 +183,7 @@ Remove `#! format: off` and `#! format: on`.  Note that
 function preprocess_juliaformatter(original::AbstractString)
     io = IOBuffer()
     for ln in eachline(IOBuffer(original))
-        if match(r"^ *#! format: (on|off)$", ln) !== nothing
-            println(io)
-        else
+        if match(r"^ *#! format: (on|off)$", ln) === nothing
             println(io, ln)
         end
     end

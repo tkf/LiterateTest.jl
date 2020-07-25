@@ -306,9 +306,7 @@ input = """
 
 output = """
     a
-
     b
-
     c
     """
 
