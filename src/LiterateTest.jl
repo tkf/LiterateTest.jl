@@ -109,9 +109,11 @@ function preprocess(original::AbstractString)
             break
         end
         if ln == "ans = begin"
+            println(io, "ans = begin # hide")
             print_deindent_until(io, source) do ln
                 ln == "end"
             end
+            println(io, "end # hide")
         elseif (m = match(r"^( *)@test +begin$", ln)) !== nothing
             spaces = m[1]
             re = Regex("^" * spaces * raw"end\b")

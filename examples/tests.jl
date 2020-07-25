@@ -6,6 +6,18 @@ using LiterateTest
 # This file tests LiterateTest.jl using plain Literate.jl-compatible
 # source code.
 
+# ## Helper function
+
+decode_output(output) = join((strip(ln, '|') for ln in split(output, "\n")), "\n")
+
+@assert decode_output("""
+    |a|
+    |b|
+    """) === """
+    a
+    b
+    """
+
 # ## Removing `ans = begin` and `end`
 
 input = """
@@ -14,9 +26,11 @@ input = """
     end
     """
 
-output = """
-    1 + 2
-    """
+output = decode_output("""
+    |ans = begin # hide|
+    |1 + 2|
+    |end # hide|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
 
@@ -160,17 +174,16 @@ Text(LiterateTest.preprocess(input))
 
 # It's a bit tricky to test this in Literate.jl:
 
-output = """
+output = decode_output("""
     |ans = try # hide|
     |error("msg")|
     |catch err; err; end # hide|
     |print(stdout, "ERROR: ") # hide|
     |showerror(stdout, ans) # hide|
     |#-|
-    """
+    """)
 
-@assert LiterateTest.preprocess(input) ==
-        join((strip(ln, '|') for ln in split(output, "\n")), "\n")
+@assert LiterateTest.preprocess(input) == output
 
 # Demo:
 
