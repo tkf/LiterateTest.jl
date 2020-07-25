@@ -148,6 +148,10 @@ function preprocess(original::AbstractString)
                 mend !== nothing
             end
             println(io, mend[1], " # hide")
+        elseif match(r"^ *#! format: (on|off)$", ln) !== nothing
+            # Filter out JuliaFormatter directives:
+            # https://domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/
+            println(io)
         else
             println(io, ln)
         end
@@ -169,6 +173,24 @@ function remove_global(ln)
     m = match(r"^global +([^ ]+ =(\s.*)?)$", ln)
     m === nothing || return m[1]
     return ln
+end
+
+"""
+    LiterateTest.preprocess_juliaformatter(code::AbstractString) -> code′::String
+
+Remove `#! format: off` and `#! format: on`.  Note that
+[`LiterateTest.preprocess`](@ref) does the same preprocessing.
+"""
+function preprocess_juliaformatter(original::AbstractString)
+    io = IOBuffer()
+    for ln in eachline(IOBuffer(original))
+        if match(r"^ *#! format: (on|off)$", ln) !== nothing
+            println(io)
+        else
+            println(io, ln)
+        end
+    end
+    return String(take!(io))
 end
 
 """
