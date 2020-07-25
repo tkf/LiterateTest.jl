@@ -129,3 +129,34 @@ x = 1
     @test ans == :(1 + $x)
 end
 nothing  # hide
+
+# ## Showing error thrown from `$code` in `@evaltest_throw "$code"`
+
+input = """
+    @evaltest_throw \"\"\"error("msg")\"\"\" begin
+        @test ans == ErrorException(1)
+    end
+    """
+
+Text(LiterateTest.preprocess(input))
+
+# It's a bit tricky to test this in Literate.jl:
+
+output = """
+    |ans = try # hide|
+    |error("msg")|
+    |catch err; err; end # hide|
+    |print(stdout, "ERROR: ") # hide|
+    |showerror(stdout, ans) # hide|
+    |#-|
+    """
+
+@assert LiterateTest.preprocess(input) ==
+        join((strip(ln, '|') for ln in split(output, "\n")), "\n")
+
+# Demo:
+
+@evaltest_throw """error("msg")""" begin
+    @test ans == ErrorException("msg")
+end
+nothing  # hide
