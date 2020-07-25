@@ -22,7 +22,9 @@ end
 
 # output
 
+begin # hide
 1 + 1
+end # hide
 ```
 
 ## `@dedent` with a macro
@@ -36,7 +38,9 @@ end
 
 # output
 
+@dedent begin # hide
 1 + 1
+end # hide
 ```
 
 ## `@dedent` with code after `end`
@@ -50,7 +54,9 @@ end == 2
 
 # output
 
+@assert begin # hide
 1 + 1
+end == 2 # hide
 ```
 
 ## `@dedent` with `global`
@@ -64,7 +70,9 @@ end
 
 # output
 
+begin # hide
 x = 1
+end # hide
 ```
 
 ## `@dedent` with `global` and newline
@@ -79,6 +87,8 @@ end
 
 # output
 
+begin # hide
 x =
     1
+end # hide
 ```

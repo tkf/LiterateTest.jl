@@ -178,12 +178,16 @@ function preprocess(original::AbstractString)
             print(io, THROWING_FOOTER)
         =#
         #! format: on
-        elseif (m = match(r"^( *)@dedent +((.*?) +)?begin$", ln)) !== nothing
+        elseif (m = match(r"^( *)@dedent +([^ ].*)$", ln)) !== nothing
+            println(io, m[2], " # hide")
             spaces = m[1]
-            re = Regex("^" * spaces * raw"end\b")
+            re = Regex("^" * spaces * raw"(end\b.*)$")
+            mend = nothing
             print_deindent_until(io, source) do ln
-                match(re, ln) !== nothing
+                mend = match(re, ln)
+                mend !== nothing
             end
+            println(io, mend[1], " # hide")
         else
             println(io, ln)
         end

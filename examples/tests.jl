@@ -200,9 +200,11 @@ input = """
     end
     """
 
-output = """
-    code
-    """
+output = decode_output("""
+    |@time begin # hide|
+    |code|
+    |end # hide|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
 
@@ -220,9 +222,11 @@ input = """
     end == 1
     """
 
-output = """
-    code
-    """
+output = decode_output("""
+    |@assert begin # hide|
+    |code|
+    |end == 1 # hide|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
 
@@ -244,10 +248,14 @@ input = """
     @test y1 == y2
     """
 
-output = """
-    1 + 1
-    3 - 1
-    """
+output = decode_output("""
+    |y1 = begin # hide|
+    |1 + 1|
+    |end # hide|
+    |y2 = begin # hide|
+    |3 - 1|
+    |end # hide|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
 
@@ -272,10 +280,12 @@ input = """
     end
     """
 
-output = """
-    if VERSION >= v"1.4"
-    code
-    end
-    """
+output = decode_output("""
+    |if VERSION >= v"1.4"|
+    |@assert begin # hide|
+    |code|
+    |end == 1 # hide|
+    |end|
+    """)
 
 @assert LiterateTest.preprocess(input) == output
