@@ -1,7 +1,7 @@
 name = "LiterateTest"
 uuid = "d77d25b0-90d3-4a16-b10a-412a9d48f625"
 authors = ["Takafumi Arakaki <aka.tkf@gmail.com> and contributors"]
-version = "0.1.2"
+version = "0.1.3-DEV"
 
 [deps]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
