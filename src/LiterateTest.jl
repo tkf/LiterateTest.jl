@@ -58,46 +58,6 @@ See [Testing LiterateTest.jl](@ref tests) for examples of how it works.
     line-based transformation.  It may break with complex expressions.
 
 `LiterateTest.preprocess` does the following transformations:
-
-* Remove `ans = begin` and `end` from
-
-  ```
-  ans = begin
-      # any number of lines with consistent indentation
-  end
-  ```
-
-  and then de-indent the lines inside `begin ... end`.
-
-* Remove `@test begin` and `end ...` from
-
-  ```
-  @test begin
-      # any number of lines with consistent indentation
-  end # any content after `end` is ignored.
-  ```
-
-  and then de-indent the lines inside `begin ... end`.  Also remove
-  `global` from assignments of the form `global ... = ...` if appears
-  at the shallowest indentation level.
-
-* Remove the `@testset` block of the form
-
-  ```
-  @testset ...
-      ...
-  end
-  ```
-
-* Extract `\$code` from
-
-  ```
-  @evaltest "\$code" ...
-      ...
-  end
-  ```
-
-  and remove everything else.
 """
 function preprocess(original::AbstractString)
     source = Iterators.Stateful(eachline(IOBuffer(original)))
