@@ -289,3 +289,30 @@ output = decode_output("""
     """)
 
 @assert LiterateTest.preprocess(input) == output
+
+# ## Removing JuliaFormatter.jl on/off toggles
+
+# [The on/off comments for JuliaFormatter.jl](
+# https://domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/
+# ) are removed by `LiterateTest.preprocess`:
+
+input = """
+    a
+    #! format: off
+    b
+    #! format: on
+    c
+    """
+
+output = """
+    a
+    b
+    c
+    """
+
+@assert LiterateTest.preprocess(input) == output
+
+# There is also [`LiterateTest.preprocess_juliaformatter`](@ref) that
+# does only this preprocessing:
+
+@assert LiterateTest.preprocess_juliaformatter(input) == output
