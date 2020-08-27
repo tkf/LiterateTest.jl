@@ -236,42 +236,6 @@ catch err
 end
 nothing  # hide
 
-# ### Testing macro expansion with `@eval`
-
-input = """
-    @testset_error @eval try
-        @inline begin end
-    catch err
-        msg = sprint(showerror, err)
-        @test occursin("is not a function expression", msg)
-    end
-    """
-
-Text(LiterateTest.preprocess(input))
-
-# Note that `@eval` is in between `try` and `begin` in the first line.
-
-output = decode_output("""
-    |err = try @eval begin # hide|
-    |@inline begin end|
-    |end catch _err; _err; end # hide|
-    |print(stdout, "ERROR: ") # hide|
-    |showerror(stdout, err) # hide|
-    |#-|
-    """)
-
-@assert LiterateTest.preprocess(input) == output
-
-# Demo:
-
-@testset_error @eval try
-    @inline begin end
-catch err
-    msg = sprint(showerror, err)
-    @test occursin("is not a function expression", msg)
-end
-nothing  # hide
-
 # ## De-indenting `code` in `@dedent begin code end`
 
 input = """
@@ -369,6 +333,48 @@ output = decode_output("""
     """)
 
 @assert LiterateTest.preprocess(input) == output
+
+# ## Combine `@testset_error`, `@dedent` and `@eval` to test macro expansion
+
+input = """
+    @testset_error try
+        @dedent @eval begin
+            @inline begin end
+        end
+    catch err
+        msg = sprint(showerror, err)
+        @test occursin("is not a function expression", msg)
+    end
+    """
+
+Text(LiterateTest.preprocess(input))
+
+# Note that `@eval` is in between `try` and `begin` in the first line.
+
+output = decode_output("""
+    |err = try @eval begin # hide|
+    |@eval begin # hide|
+    |@inline begin end|
+    |end # hide|
+    |catch _err; _err; end # hide|
+    |print(stdout, "ERROR: ") # hide|
+    |showerror(stdout, err) # hide|
+    |#-|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@testset_error try
+    @dedent @eval begin
+        @inline begin end
+    end
+catch err
+    msg = sprint(showerror, err)
+    @test occursin("is not a function expression", msg)
+end
+nothing  # hide
 
 # ## Removing JuliaFormatter.jl on/off toggles
 
