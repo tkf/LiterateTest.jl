@@ -114,13 +114,12 @@ function preprocess(original::AbstractString)
                 print(io, THROWING_FOOTER)
                 consume_until_end(source)
             end
-        elseif startswith(ln, "@testset_error")
-            print(io, THROWING_HEADER)
-            println(io, "")
+        elseif (m = match(r"^@testset_error +(.*) try", ln)) !== nothing
+            println(io, "err = try ", m[1], " begin # hide")
             print_deindent_until(io, source) do ln
                 startswith(ln, "catch ")
             end
-            print(io, THROWING_FOOTER)
+            print(io, "end ", THROWING_FOOTER)
             consume_until_end(source)
         #! format: off
         #=
