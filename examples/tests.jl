@@ -268,12 +268,11 @@ Text(output)
 
 # Demo:
 
-@testset_error try
-    if true
-        error(1)
-    end
+@testset_error @eval try
+    @inline begin end
 catch err
-    @test err == ErrorException("1")
+    msg = sprint(showerror, err)
+    @test occursin("is not a function expression", msg)
 end
 nothing  # hide
 
