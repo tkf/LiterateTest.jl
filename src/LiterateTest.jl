@@ -113,7 +113,7 @@ function preprocess(original::AbstractString)
                 print(io, THROWING_FOOTER)
                 consume_until_end(source)
             end
-        elseif (m = match(r"^@testset_error +((.*?) +)?try$", ln)) !== nothing
+        elseif (m = match(r"^@testset_error .*try$", ln)) !== nothing
             print(io, THROWING_HEADER)
             # TODO: less manual recursive processing
             inner = sprint() do io
@@ -292,12 +292,9 @@ macro testset_error(expr)
     return esc(_testset_error(__source__, __module__, nothing, expr))
 end
 
-# TODO: Support `@testset_error(label, expr)` in `preprocess`.
-#=
 macro testset_error(label, expr)
     return esc(_testset_error(__source__, __module__, label, expr))
 end
-=#
 
 function _testset_error(__source__, __module__, label, expr)
     error_symbol = nothing

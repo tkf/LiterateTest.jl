@@ -227,7 +227,7 @@ Text(output)
 
 # Demo:
 
-@testset_error try
+@testset_error "@testset_error" try
     if true
         error(1)
     end
@@ -366,7 +366,7 @@ output = decode_output("""
 
 # Demo:
 
-@testset_error try
+@testset_error "@testset_error + @dedent + @eval" try
     @dedent @eval begin
         @inline begin end
     end
