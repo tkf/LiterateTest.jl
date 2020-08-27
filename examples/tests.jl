@@ -349,7 +349,7 @@ input = """
 
 Text(LiterateTest.preprocess(input))
 
-# Note that `@eval` is in between `try` and `begin` in the first line.
+# Note that all lines except `@inline begin end` ends with `# hide`.
 
 output = decode_output("""
     |err = try # hide|
