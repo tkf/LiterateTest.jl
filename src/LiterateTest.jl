@@ -6,7 +6,7 @@ import Test
 using Base.Meta: isexpr
 
 """
-    LiterateTest.config(; overloads...) -> config::Dict{Symbol,Ans}
+    LiterateTest.config(; overloads...) -> config::Dict{Symbol,Any}
 
 Construct a `config` dictionary that can be passed to
 `Literate.markdown` etc.
@@ -57,8 +57,6 @@ See [Testing LiterateTest.jl](@ref tests) for examples of how it works.
 
     Currently, `LiterateTest.preprocess` is implemented as a plain
     line-based transformation.  It may break with complex expressions.
-
-`LiterateTest.preprocess` does the following transformations:
 """
 function preprocess(original::AbstractString)
     source = Iterators.Stateful(eachline(IOBuffer(original)))
