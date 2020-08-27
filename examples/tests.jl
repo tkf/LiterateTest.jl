@@ -249,7 +249,7 @@ input = """
 
 Text(LiterateTest.preprocess(input))
 
-#-
+# Note that `@eval` is in between `try` and `begin` in the first line.
 
 output = decode_output("""
     |err = try @eval begin # hide|
@@ -259,10 +259,6 @@ output = decode_output("""
     |showerror(stdout, err) # hide|
     |#-|
     """)
-
-Text(output)
-
-# Note that `@eval` is in between `try` and `begin` in the first line.
 
 @assert LiterateTest.preprocess(input) == output
 
