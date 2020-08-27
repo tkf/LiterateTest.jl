@@ -121,6 +121,7 @@ function preprocess(original::AbstractString)
                 startswith(ln, "catch ")
             end
             print(io, THROWING_FOOTER)
+            consume_until_end(source)
         #! format: off
         #=
         elseif (m = match(r"^@throwing *(.*)$", ln)) !== nothing
