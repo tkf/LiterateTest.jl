@@ -286,6 +286,14 @@ end
 `expr` must contain a `try`-`catch` block.
 """
 macro testset_error(label, expr)
+    return esc(_testset_error(__source__, __module__, label, expr))
+end
+
+macro testset_error(expr)
+    return esc(_testset_error(__source__, __module__, nothing, expr))
+end
+
+function _testset_error(__source__, __module__, label, expr)
     error_symbol = nothing
     testblock = nothing
     trycatch = replace_first_match(expr) do ex
@@ -310,18 +318,12 @@ macro testset_error(label, expr)
         $error_symbol = something($err2)
         $testblock
     end
-    return esc(Expr(
-        :macrocall,
-        getfield(Test, Symbol("@testset")),
-        __source__,
-        testset_body,
-    ))
-end
-
-macro testset_error(expr)
-    quote
-        $(@__MODULE__).@testset_error "Test set" $expr
-    end |> esc
+    args = [:macrocall, getfield(Test, Symbol("@testset")), __source__]
+    if label !== nothing
+        push!(args, label)
+    end
+    push!(args, testset_body)
+    return Expr(args...)
 end
 
 function replace_first_match(f, ex)
