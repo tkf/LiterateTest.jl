@@ -192,6 +192,90 @@ output = decode_output("""
 end
 nothing  # hide
 
+# ## Testing an exception from multi-line code with `@testset_error`
+
+input = """
+    @testset_error try
+        if true
+            error(1)
+        end
+    catch err
+        @test err == ErrorException(1)
+    end
+    """
+
+Text(LiterateTest.preprocess(input))
+
+#-
+
+output = decode_output("""
+    |err = try  begin # hide|
+    |if true|
+    |    error(1)|
+    |end|
+    |end catch _err; _err; end # hide|
+    |print(stdout, "ERROR: ") # hide|
+    |showerror(stdout, err) # hide|
+    |#-|
+    """)
+
+Text(output)
+
+#-
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@testset_error try
+    if true
+        error(1)
+    end
+catch err
+    @test err == ErrorException("1")
+end
+nothing  # hide
+
+# ### Testing macro expansion with `@eval`
+
+input = """
+    @testset_error @eval try
+        @inline begin end
+    catch err
+        msg = sprint(showerror, err)
+        @test occursin("is not a function expression", msg)
+    end
+    """
+
+Text(LiterateTest.preprocess(input))
+
+#-
+
+output = decode_output("""
+    |err = try @eval begin # hide|
+    |@inline begin end|
+    |end catch _err; _err; end # hide|
+    |print(stdout, "ERROR: ") # hide|
+    |showerror(stdout, err) # hide|
+    |#-|
+    """)
+
+Text(output)
+
+# Note that `@eval` is in between `try` and `begin` in the first line.
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@testset_error @eval try
+    @inline begin end
+catch err
+    msg = sprint(showerror, err)
+    @test occursin("is not a function expression", msg)
+end
+nothing  # hide
+
 # ## De-indenting `code` in `@dedent begin code end`
 
 input = """

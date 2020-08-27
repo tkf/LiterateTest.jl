@@ -1,8 +1,9 @@
 module LiterateTest
 
-export @dedent, @evaltest, @evaltest_throw
+export @dedent, @evaltest, @evaltest_throw, @testset_error
 
 import Test
+using Base.Meta: isexpr
 
 """
     LiterateTest.config(; overloads...) -> config::Dict{Symbol,Ans}
@@ -114,6 +115,13 @@ function preprocess(original::AbstractString)
                 print(io, THROWING_FOOTER)
                 consume_until_end(source)
             end
+        elseif (m = match(r"^@testset_error +((.*?) +)?try$", ln)) !== nothing
+            println(io, "err = try ", something(m[2], ""), " begin # hide")
+            print_deindent_until(io, source) do ln
+                startswith(ln, "catch ")
+            end
+            print(io, "end ", THROWING_FOOTER)
+            consume_until_end(source)
         #! format: off
         #=
         elseif (m = match(r"^@throwing *(.*)$", ln)) !== nothing
@@ -271,6 +279,63 @@ macro evaltest_throw(str::Expr, tests::Expr)
     code = macroexpand(__module__, str)
     code::AbstractString
     return esc(:($(@__MODULE__).@evaltest_throw $code $tests))
+end
+
+"""
+    @testset_error label expr
+    @testset_error expr
+
+`expr` must contain a `try`-`catch` block.
+"""
+macro testset_error(label, expr)
+    error_symbol = nothing
+    testblock = nothing
+    trycatch = replace_first_match(expr) do ex
+        if isexpr(ex, :try, 3)
+            error_symbol = ex.args[2]
+            testblock = ex.args[3]
+            return ex.args[1]
+        end
+    end
+    if trycatch === nothing
+        error("Expression does not contain `try`-`catch` block:\n", expr)
+    end
+    @gensym err1 err2
+    testset_body = quote
+        $err2 =
+            try
+                $(something(trycatch))
+                nothing
+            catch $err1
+                Some($err1)
+            end
+        $error_symbol = something($err2)
+        $testblock
+    end
+    return esc(Expr(
+        :macrocall,
+        getfield(Test, Symbol("@testset")),
+        __source__,
+        testset_body,
+    ))
+end
+
+macro testset_error(expr)
+    quote
+        $(@__MODULE__).@testset_error "Test set" $expr
+    end |> esc
+end
+
+function replace_first_match(f, ex)
+    y = f(ex)
+    y === nothing || return y
+    ex isa Expr || return nothing
+    for (i, a) in pairs(ex.args)
+        y = replace_first_match(f, a)
+        y === nothing && continue
+        return Some(Expr(ex.head, ex.args[1:i-1]..., something(y), ex.args[i+1:end]...))
+    end
+    return nothing
 end
 
 #=
