@@ -280,18 +280,20 @@ macro evaltest_throw(str::Expr, tests::Expr)
 end
 
 """
-    @testset_error label expr
     @testset_error expr
 
 `expr` must contain a `try`-`catch` block.
 """
-macro testset_error(label, expr)
-    return esc(_testset_error(__source__, __module__, label, expr))
-end
-
 macro testset_error(expr)
     return esc(_testset_error(__source__, __module__, nothing, expr))
 end
+
+# TODO: Support `@testset_error(label, expr)` in `preprocess`.
+#=
+macro testset_error(label, expr)
+    return esc(_testset_error(__source__, __module__, label, expr))
+end
+=#
 
 function _testset_error(__source__, __module__, label, expr)
     error_symbol = nothing
