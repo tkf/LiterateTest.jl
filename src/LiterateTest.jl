@@ -1,6 +1,6 @@
 module LiterateTest
 
-export @dedent, @evaltest, @evaltest_throw
+export @dedent, @evaltest, @evaltest_throw, @testset_error
 
 import Test
 
@@ -120,6 +120,13 @@ function preprocess(original::AbstractString)
                     popfirst!(source) == "end" && break
                 end
             end
+        elseif startswith(ln, "@testset_error")
+            print(io, THROWING_HEADER)
+            println(io, "")
+            print_deindent_until(io, source) do ln
+                startswith(ln, "catch ")
+            end
+            print(io, THROWING_FOOTER)
         #! format: off
         #=
         elseif (m = match(r"^@throwing *(.*)$", ln)) !== nothing
@@ -264,6 +271,58 @@ macro evaltest_throw(str::Expr, tests::Expr)
     code = macroexpand(__module__, str)
     code::AbstractString
     return esc(:($(@__MODULE__).@evaltest_throw $code $tests))
+end
+
+"""
+    @testset_error label expr
+    @testset_error expr
+
+`expr` must contain a `try`-`catch` block.
+"""
+macro testset_error(label, expr)
+    error_symbol = nothing
+    testblock = nothing
+    trycatch = replace_first_match(expr) do ex
+        if isexpr(ex, :try, 3)
+            error_symbol = ex.args[2]
+            testblock = ex.args[3]
+            return ex.args[1]
+        end
+    end
+    if trycatch === nothing
+        error("Expression does not contain `try`-`catch` block:\n", expr)
+    end
+    return quote
+        $Test.@testset $label begin
+            $err2 =
+                try
+                    $(something(trycatch))
+                    nothing
+                catch $err1
+                    Some($err1)
+                end
+            $error_symbol = something($err2)
+            $testblock
+        end
+    end |> esc
+end
+
+macro testset_error(expr)
+    quote
+        $(@__MODULE__).@testset_error "Test set" $expr
+    end
+end
+
+function replace_first_match(f, ex)
+    y = f(ex)
+    y === nothing || return y
+    ex isa Expr || return nothing
+    for (i, a) in pairs(ex.args)
+        y = replace_first_match(f, a)
+        y === nothing && continue
+        return Some(Expr(ex.head, ex.args[1:i-1]..., something(y), ex.args[i+1:end]...))
+    end
+    return nothing
 end
 
 #=
