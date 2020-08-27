@@ -209,7 +209,7 @@ Text(LiterateTest.preprocess(input))
 #-
 
 output = decode_output("""
-    |err = try begin # hide|
+    |err = try  begin # hide|
     |if true|
     |    error(1)|
     |end|
@@ -232,7 +232,7 @@ Text(output)
         error(1)
     end
 catch err
-    @test err == ErrorException(1)
+    @test err == ErrorException("1")
 end
 nothing  # hide
 
@@ -273,7 +273,7 @@ Text(output)
         error(1)
     end
 catch err
-    @test err == ErrorException(1)
+    @test err == ErrorException("1")
 end
 nothing  # hide
 

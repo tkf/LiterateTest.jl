@@ -3,6 +3,7 @@ module LiterateTest
 export @dedent, @evaltest, @evaltest_throw, @testset_error
 
 import Test
+using Base.Meta: isexpr
 
 """
     LiterateTest.config(; overloads...) -> config::Dict{Symbol,Ans}
@@ -114,8 +115,8 @@ function preprocess(original::AbstractString)
                 print(io, THROWING_FOOTER)
                 consume_until_end(source)
             end
-        elseif (m = match(r"^@testset_error +(.*) try", ln)) !== nothing
-            println(io, "err = try ", m[1], " begin # hide")
+        elseif (m = match(r"^@testset_error +((.*?) +)?try$", ln)) !== nothing
+            println(io, "err = try ", something(m[2], ""), " begin # hide")
             print_deindent_until(io, source) do ln
                 startswith(ln, "catch ")
             end
@@ -299,25 +300,30 @@ macro testset_error(label, expr)
     if trycatch === nothing
         error("Expression does not contain `try`-`catch` block:\n", expr)
     end
-    return quote
-        $Test.@testset $label begin
-            $err2 =
-                try
-                    $(something(trycatch))
-                    nothing
-                catch $err1
-                    Some($err1)
-                end
-            $error_symbol = something($err2)
-            $testblock
-        end
-    end |> esc
+    @gensym err1 err2
+    testset_body = quote
+        $err2 =
+            try
+                $(something(trycatch))
+                nothing
+            catch $err1
+                Some($err1)
+            end
+        $error_symbol = something($err2)
+        $testblock
+    end
+    return esc(Expr(
+        :macrocall,
+        getfield(Test, Symbol("@testset")),
+        __source__,
+        testset_body,
+    ))
 end
 
 macro testset_error(expr)
     quote
         $(@__MODULE__).@testset_error "Test set" $expr
-    end
+    end |> esc
 end
 
 function replace_first_match(f, ex)
