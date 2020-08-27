@@ -83,9 +83,7 @@ function preprocess(original::AbstractString)
         elseif (m = match(r"^( *)@test\b", ln)) !== nothing
             # remove `@test ...`
         elseif startswith(ln, "@testset ")
-            while true
-                popfirst!(source) == "end" && break
-            end
+            consume_until_end(source)
         elseif (
             m = match(
                 r"""
@@ -109,16 +107,12 @@ function preprocess(original::AbstractString)
             end
             if m[:macroname] == "@evaltest"
                 println(io, code)
-                while true
-                    popfirst!(source) == "end" && break
-                end
+                consume_until_end(source)
             elseif m[:macroname] == "@evaltest_throw"
                 print(io, THROWING_HEADER)
                 println(io, code)
                 print(io, THROWING_FOOTER)
-                while true
-                    popfirst!(source) == "end" && break
-                end
+                consume_until_end(source)
             end
         elseif startswith(ln, "@testset_error")
             print(io, THROWING_HEADER)
@@ -163,6 +157,19 @@ function preprocess(original::AbstractString)
         end
     end
     return String(take!(io))
+end
+
+function consume_until_end(source)
+    consume_until(source) do ln
+        match(r"^end\b$", ln) !== nothing
+    end
+end
+
+function consume_until(f, source)
+    while true
+        ln = popfirst!(source)
+        f(ln) && return ln
+    end
 end
 
 function print_deindent_until(f, io, source)
