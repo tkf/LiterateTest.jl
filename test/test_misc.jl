@@ -34,4 +34,16 @@ end
     @test occursin("Test Failed", output)
 end
 
+@testset "@testset_error" begin
+    err = try
+        @eval @testset_error :no_try_catch
+        nothing
+    catch err
+        err
+    end
+    @test err isa Exception
+    msg = sprint(showerror, err)
+    @test occursin("does not contain `try`-`catch` block", msg)
+end
+
 end  # module
