@@ -113,12 +113,16 @@ function preprocess(original::AbstractString)
                 print(io, THROWING_FOOTER)
                 consume_until_end(source)
             end
-        elseif (m = match(r"^@testset_error +((.*?) +)?try$", ln)) !== nothing
-            println(io, "err = try ", something(m[2], ""), " begin # hide")
-            print_deindent_until(io, source) do ln
-                startswith(ln, "catch ")
+        elseif (m = match(r"^@testset_error .*try$", ln)) !== nothing
+            print(io, THROWING_HEADER)
+            # TODO: less manual recursive processing
+            inner = sprint() do io
+                print_deindent_until(io, source) do ln
+                    startswith(ln, "catch ")
+                end
             end
-            print(io, "end ", THROWING_FOOTER)
+            print(io, preprocess(inner))
+            print(io, THROWING_FOOTER)
             consume_until_end(source)
         #! format: off
         #=
@@ -288,31 +292,20 @@ macro testset_error(expr)
     return esc(_testset_error(__source__, __module__, nothing, expr))
 end
 
-# TODO: Support `@testset_error(label, expr)` in `preprocess`.
-#=
 macro testset_error(label, expr)
     return esc(_testset_error(__source__, __module__, label, expr))
 end
-=#
 
 function _testset_error(__source__, __module__, label, expr)
-    error_symbol = nothing
-    testblock = nothing
-    trycatch = replace_first_match(expr) do ex
-        if isexpr(ex, :try, 3)
-            error_symbol = ex.args[2]
-            testblock = ex.args[3]
-            return ex.args[1]
-        end
+    if !isexpr(expr, :try, 3)
+        error("Expect a `try`-`catch` block. Got:\n", expr)
     end
-    if trycatch === nothing
-        error("Expression does not contain `try`-`catch` block:\n", expr)
-    end
+    tryblock, error_symbol, testblock = expr.args
     @gensym err1 err2
     testset_body = quote
         $err2 =
             try
-                $(something(trycatch))
+                $tryblock
                 nothing
             catch $err1
                 Some($err1)
@@ -326,18 +319,6 @@ function _testset_error(__source__, __module__, label, expr)
     end
     push!(args, testset_body)
     return Expr(args...)
-end
-
-function replace_first_match(f, ex)
-    y = f(ex)
-    y === nothing || return y
-    ex isa Expr || return nothing
-    for (i, a) in pairs(ex.args)
-        y = replace_first_match(f, a)
-        y === nothing && continue
-        return Some(Expr(ex.head, ex.args[1:i-1]..., something(y), ex.args[i+1:end]...))
-    end
-    return nothing
 end
 
 #=

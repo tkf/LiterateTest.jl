@@ -209,11 +209,11 @@ Text(LiterateTest.preprocess(input))
 #-
 
 output = decode_output("""
-    |err = try  begin # hide|
+    |err = try # hide|
     |if true|
     |    error(1)|
     |end|
-    |end catch _err; _err; end # hide|
+    |catch _err; _err; end # hide|
     |print(stdout, "ERROR: ") # hide|
     |showerror(stdout, err) # hide|
     |#-|
@@ -227,48 +227,12 @@ Text(output)
 
 # Demo:
 
-@testset_error try
+@testset_error "@testset_error" try
     if true
         error(1)
     end
 catch err
     @test err == ErrorException("1")
-end
-nothing  # hide
-
-# ### Testing macro expansion with `@eval`
-
-input = """
-    @testset_error @eval try
-        @inline begin end
-    catch err
-        msg = sprint(showerror, err)
-        @test occursin("is not a function expression", msg)
-    end
-    """
-
-Text(LiterateTest.preprocess(input))
-
-# Note that `@eval` is in between `try` and `begin` in the first line.
-
-output = decode_output("""
-    |err = try @eval begin # hide|
-    |@inline begin end|
-    |end catch _err; _err; end # hide|
-    |print(stdout, "ERROR: ") # hide|
-    |showerror(stdout, err) # hide|
-    |#-|
-    """)
-
-@assert LiterateTest.preprocess(input) == output
-
-# Demo:
-
-@testset_error @eval try
-    @inline begin end
-catch err
-    msg = sprint(showerror, err)
-    @test occursin("is not a function expression", msg)
 end
 nothing  # hide
 
@@ -369,6 +333,48 @@ output = decode_output("""
     """)
 
 @assert LiterateTest.preprocess(input) == output
+
+# ## Combine `@testset_error`, `@dedent` and `@eval` to test macro expansion
+
+input = """
+    @testset_error try
+        @dedent @eval begin
+            @inline begin end
+        end
+    catch err
+        msg = sprint(showerror, err)
+        @test occursin("is not a function expression", msg)
+    end
+    """
+
+Text(LiterateTest.preprocess(input))
+
+# Note that all lines except `@inline begin end` ends with `# hide`.
+
+output = decode_output("""
+    |err = try # hide|
+    |@eval begin # hide|
+    |@inline begin end|
+    |end # hide|
+    |catch _err; _err; end # hide|
+    |print(stdout, "ERROR: ") # hide|
+    |showerror(stdout, err) # hide|
+    |#-|
+    """)
+
+@assert LiterateTest.preprocess(input) == output
+
+# Demo:
+
+@testset_error "@testset_error + @dedent + @eval" try
+    @dedent @eval begin
+        @inline begin end
+    end
+catch err
+    msg = sprint(showerror, err)
+    @test occursin("is not a function expression", msg)
+end
+nothing  # hide
 
 # ## Removing JuliaFormatter.jl on/off toggles
 

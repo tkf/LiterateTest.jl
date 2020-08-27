@@ -43,7 +43,7 @@ end
     end
     @test err isa Exception
     msg = sprint(showerror, err)
-    @test occursin("does not contain `try`-`catch` block", msg)
+    @test occursin("`try`-`catch` block", msg)
 end
 
 end  # module
