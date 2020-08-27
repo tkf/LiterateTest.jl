@@ -209,11 +209,11 @@ Text(LiterateTest.preprocess(input))
 #-
 
 output = decode_output("""
-    |err = try  begin # hide|
+    |err = try # hide|
     |if true|
     |    error(1)|
     |end|
-    |end catch _err; _err; end # hide|
+    |catch _err; _err; end # hide|
     |print(stdout, "ERROR: ") # hide|
     |showerror(stdout, err) # hide|
     |#-|

@@ -122,7 +122,7 @@ function preprocess(original::AbstractString)
                 end
             end
             print(io, preprocess(inner))
-            print(io, "end ", THROWING_FOOTER)
+            print(io, THROWING_FOOTER)
             consume_until_end(source)
         #! format: off
         #=
