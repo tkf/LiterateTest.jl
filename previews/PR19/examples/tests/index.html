@@ -163,14 +163,14 @@ catch _err; _err; end # hide
 print(stdout, &quot;ERROR: &quot;) # hide
 showerror(stdout, err) # hide
 #-
-</pre><pre><code class="language-julia">@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error try
+</pre><pre><code class="language-julia">@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error &quot;@testset_error&quot; try
     if true
         error(1)
     end
 catch err
     @test err == ErrorException(&quot;1&quot;)
-end</code></pre><pre class="documenter-example-output">Test Summary: | Pass  Total
-test set      |    1      1</pre><h2 id="De-indenting-code-in-@dedent-begin-code-end"><a class="docs-heading-anchor" href="#De-indenting-code-in-@dedent-begin-code-end">De-indenting <code>code</code> in <code>@dedent begin code end</code></a><a id="De-indenting-code-in-@dedent-begin-code-end-1"></a><a class="docs-heading-anchor-permalink" href="#De-indenting-code-in-@dedent-begin-code-end" title="Permalink"></a></h2><pre><code class="language-julia">input = &quot;&quot;&quot;
+end</code></pre><pre class="documenter-example-output">Test Summary:  | Pass  Total
+@testset_error |    1      1</pre><h2 id="De-indenting-code-in-@dedent-begin-code-end"><a class="docs-heading-anchor" href="#De-indenting-code-in-@dedent-begin-code-end">De-indenting <code>code</code> in <code>@dedent begin code end</code></a><a id="De-indenting-code-in-@dedent-begin-code-end-1"></a><a class="docs-heading-anchor-permalink" href="#De-indenting-code-in-@dedent-begin-code-end" title="Permalink"></a></h2><pre><code class="language-julia">input = &quot;&quot;&quot;
     @dedent @time begin
         code
     end
@@ -269,15 +269,15 @@ showerror(stdout, err) # hide
     |#-|
     &quot;&quot;&quot;)
 
-@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error try
+@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error &quot;@testset_error + @dedent + @eval&quot; try
     @dedent @eval begin
         @inline begin end
     end
 catch err
     msg = sprint(showerror, err)
     @test occursin(&quot;is not a function expression&quot;, msg)
-end</code></pre><pre class="documenter-example-output">Test Summary: | Pass  Total
-test set      |    1      1</pre><h2 id="Removing-JuliaFormatter.jl-on/off-toggles"><a class="docs-heading-anchor" href="#Removing-JuliaFormatter.jl-on/off-toggles">Removing JuliaFormatter.jl on/off toggles</a><a id="Removing-JuliaFormatter.jl-on/off-toggles-1"></a><a class="docs-heading-anchor-permalink" href="#Removing-JuliaFormatter.jl-on/off-toggles" title="Permalink"></a></h2><p><a href="examples/ https:/domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/ ">The on/off comments for JuliaFormatter.jl</a> are removed by <code>LiterateTest.preprocess</code>:</p><pre><code class="language-julia">input = &quot;&quot;&quot;
+end</code></pre><pre class="documenter-example-output">Test Summary:                    | Pass  Total
+@testset_error + @dedent + @eval |    1      1</pre><h2 id="Removing-JuliaFormatter.jl-on/off-toggles"><a class="docs-heading-anchor" href="#Removing-JuliaFormatter.jl-on/off-toggles">Removing JuliaFormatter.jl on/off toggles</a><a id="Removing-JuliaFormatter.jl-on/off-toggles-1"></a><a class="docs-heading-anchor-permalink" href="#Removing-JuliaFormatter.jl-on/off-toggles" title="Permalink"></a></h2><p><a href="examples/ https:/domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/ ">The on/off comments for JuliaFormatter.jl</a> are removed by <code>LiterateTest.preprocess</code>:</p><pre><code class="language-julia">input = &quot;&quot;&quot;
     a
     #! format: off
     b
