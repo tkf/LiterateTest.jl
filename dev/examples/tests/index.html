@@ -185,7 +185,7 @@ end catch _err; _err; end # hide
 print(stdout, &quot;ERROR: &quot;) # hide
 showerror(stdout, err) # hide
 #-
-</pre><pre><code class="language-julia">output = decode_output(&quot;&quot;&quot;
+</pre><p>Note that <code>@eval</code> is in between <code>try</code> and <code>begin</code> in the first line.</p><pre><code class="language-julia">output = decode_output(&quot;&quot;&quot;
     |err = try @eval begin # hide|
     |@inline begin end|
     |end catch _err; _err; end # hide|
@@ -194,13 +194,7 @@ showerror(stdout, err) # hide
     |#-|
     &quot;&quot;&quot;)
 
-Text(output)</code></pre><pre class="documenter-example-output">err = try @eval begin # hide
-@inline begin end
-end catch _err; _err; end # hide
-print(stdout, &quot;ERROR: &quot;) # hide
-showerror(stdout, err) # hide
-#-
-</pre><p>Note that <code>@eval</code> is in between <code>try</code> and <code>begin</code> in the first line.</p><pre><code class="language-julia">@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error @eval try
+@assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia">@testset_error @eval try
     @inline begin end
 catch err
     msg = sprint(showerror, err)
@@ -289,4 +283,4 @@ output = &quot;&quot;&quot;
     c
     &quot;&quot;&quot;
 
-@assert LiterateTest.preprocess(input) == output</code></pre><p>There is also <a href="../../#LiterateTest.preprocess_juliaformatter"><code>LiterateTest.preprocess_juliaformatter</code></a> that does only this preprocessing:</p><pre><code class="language-julia">@assert LiterateTest.preprocess_juliaformatter(input) == output</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 27 August 2020 04:15">Thursday 27 August 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+@assert LiterateTest.preprocess(input) == output</code></pre><p>There is also <a href="../../#LiterateTest.preprocess_juliaformatter"><code>LiterateTest.preprocess_juliaformatter</code></a> that does only this preprocessing:</p><pre><code class="language-julia">@assert LiterateTest.preprocess_juliaformatter(input) == output</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 27 August 2020 05:25">Thursday 27 August 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
