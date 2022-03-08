@@ -242,26 +242,26 @@ output = decode_output(&quot;&quot;&quot;
 @assert LiterateTest.preprocess(input) == output</code></pre><h2 id="Combine-@testset_error,-@dedent-and-@eval-to-test-macro-expansion"><a class="docs-heading-anchor" href="#Combine-@testset_error,-@dedent-and-@eval-to-test-macro-expansion">Combine <code>@testset_error</code>, <code>@dedent</code> and <code>@eval</code> to test macro expansion</a><a id="Combine-@testset_error,-@dedent-and-@eval-to-test-macro-expansion-1"></a><a class="docs-heading-anchor-permalink" href="#Combine-@testset_error,-@dedent-and-@eval-to-test-macro-expansion" title="Permalink"></a></h2><pre><code class="language-julia hljs">input = &quot;&quot;&quot;
     @testset_error try
         @dedent @eval begin
-            @inline begin end
+            LiterateTest.@this_macro_does_not_exist
         end
     catch err
         msg = sprint(showerror, err)
-        @test occursin(&quot;is not a function expression&quot;, msg)
+        @test occursin(&quot;UndefVarError: @this_macro_does_not_exist not defined&quot;, msg)
     end
     &quot;&quot;&quot;
 
 Text(LiterateTest.preprocess(input))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">err = try # hide
 @eval begin # hide
-@inline begin end
+LiterateTest.@this_macro_does_not_exist
 end # hide
 catch _err; _err; end # hide
 print(stdout, &quot;ERROR: &quot;) # hide
 showerror(stdout, err) # hide
 #-
-</code></pre><p>Note that all lines except <code>@inline begin end</code> ends with <code># hide</code>.</p><pre><code class="language-julia hljs">output = decode_output(&quot;&quot;&quot;
+</code></pre><p>Note that all lines except <code>LiterateTest.@this_macro_does_not_exist</code> ends with <code># hide</code>.</p><pre><code class="language-julia hljs">output = decode_output(&quot;&quot;&quot;
     |err = try # hide|
     |@eval begin # hide|
-    |@inline begin end|
+    |LiterateTest.@this_macro_does_not_exist|
     |end # hide|
     |catch _err; _err; end # hide|
     |print(stdout, &quot;ERROR: &quot;) # hide|
@@ -271,11 +271,11 @@ showerror(stdout, err) # hide
 
 @assert LiterateTest.preprocess(input) == output</code></pre><p>Demo:</p><pre><code class="language-julia hljs">@testset_error &quot;@testset_error + @dedent + @eval&quot; try
     @dedent @eval begin
-        @inline begin end
+        LiterateTest.@this_macro_does_not_exist
     end
 catch err
     msg = sprint(showerror, err)
-    @test occursin(&quot;is not a function expression&quot;, msg)
+    @test occursin(&quot;UndefVarError: @this_macro_does_not_exist not defined&quot;, msg)
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Test Summary:                    | Pass  Total
 @testset_error + @dedent + @eval |    1      1</code></pre><h2 id="Removing-JuliaFormatter.jl-on/off-toggles"><a class="docs-heading-anchor" href="#Removing-JuliaFormatter.jl-on/off-toggles">Removing JuliaFormatter.jl on/off toggles</a><a id="Removing-JuliaFormatter.jl-on/off-toggles-1"></a><a class="docs-heading-anchor-permalink" href="#Removing-JuliaFormatter.jl-on/off-toggles" title="Permalink"></a></h2><p><a href="examples/ https:/domluna.github.io/JuliaFormatter.jl/dev/skipping_formatting/ ">The on/off comments for JuliaFormatter.jl</a> are removed by <code>LiterateTest.preprocess</code>:</p><pre><code class="language-julia hljs">input = &quot;&quot;&quot;
     a
@@ -291,4 +291,4 @@ output = &quot;&quot;&quot;
     c
     &quot;&quot;&quot;
 
-@assert LiterateTest.preprocess(input) == output</code></pre><p>There is also <a href="../../#LiterateTest.preprocess_juliaformatter"><code>LiterateTest.preprocess_juliaformatter</code></a> that does only this preprocessing:</p><pre><code class="language-julia hljs">@assert LiterateTest.preprocess_juliaformatter(input) == output</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.14 on <span class="colophon-date" title="Tuesday 8 March 2022 02:50">Tuesday 8 March 2022</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+@assert LiterateTest.preprocess(input) == output</code></pre><p>There is also <a href="../../#LiterateTest.preprocess_juliaformatter"><code>LiterateTest.preprocess_juliaformatter</code></a> that does only this preprocessing:</p><pre><code class="language-julia hljs">@assert LiterateTest.preprocess_juliaformatter(input) == output</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.14 on <span class="colophon-date" title="Tuesday 8 March 2022 02:54">Tuesday 8 March 2022</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
