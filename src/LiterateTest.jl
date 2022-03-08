@@ -317,7 +317,7 @@ function _testset_error(__source__, __module__, label, expr)
     if label !== nothing
         push!(args, label)
     end
-    push!(args, testset_body)
+    push!(args, Expr(:block, __source__, testset_body))
     return Expr(args...)
 end
 

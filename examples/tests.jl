@@ -339,22 +339,22 @@ output = decode_output("""
 input = """
     @testset_error try
         @dedent @eval begin
-            @inline begin end
+            LiterateTest.@this_macro_does_not_exist
         end
     catch err
         msg = sprint(showerror, err)
-        @test occursin("is not a function expression", msg)
+        @test occursin("UndefVarError: @this_macro_does_not_exist not defined", msg)
     end
     """
 
 Text(LiterateTest.preprocess(input))
 
-# Note that all lines except `@inline begin end` ends with `# hide`.
+# Note that all lines except `LiterateTest.@this_macro_does_not_exist` ends with `# hide`.
 
 output = decode_output("""
     |err = try # hide|
     |@eval begin # hide|
-    |@inline begin end|
+    |LiterateTest.@this_macro_does_not_exist|
     |end # hide|
     |catch _err; _err; end # hide|
     |print(stdout, "ERROR: ") # hide|
@@ -368,11 +368,11 @@ output = decode_output("""
 
 @testset_error "@testset_error + @dedent + @eval" try
     @dedent @eval begin
-        @inline begin end
+        LiterateTest.@this_macro_does_not_exist
     end
 catch err
     msg = sprint(showerror, err)
-    @test occursin("is not a function expression", msg)
+    @test occursin("UndefVarError: @this_macro_does_not_exist not defined", msg)
 end
 nothing  # hide
 
